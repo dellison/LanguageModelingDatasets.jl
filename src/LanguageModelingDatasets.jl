@@ -2,7 +2,10 @@ module LanguageModelingDatasets
 
 using DataDeps
 
-export BillionWordBenchmark, WikiText2, WikiText103, WikiText2Raw, WikiText103Raw
+export BillionWordBenchmark
+export WikiText2, WikiText103, WikiText2Raw, WikiText103Raw
+export HutterPrize, enwiki8
+
 export train_files, dev_files, test_files
 
 """
@@ -30,10 +33,12 @@ abstract type AbstractLanguageModelingDataset end
 
 include("billion_word_benchmark.jl")
 include("wikitext.jl")
+include("enwiki8.jl")
 
 function __init__()
     register_billionwordbenchmark()
     register_wikitext()
+    register_enwiki8()
 end
 
 end # module

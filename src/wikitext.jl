@@ -53,10 +53,10 @@ end
 suffix(corpus::Union{WikiText2,WikiText103})       = "tokens"
 suffix(corpus::Union{WikiText2Raw,WikiText103Raw}) = "raw"
 
-corpusdir(corpups::WikiText2v1)      = datadep"WikiText-2-v1"
-corpusdir(corpups::WikiText103v1)    = datadep"WikiText-103-v1"
-corpusdir(corpups::WikiText2RawV1)   = datadep"WikiText-2-raw-v1"
-corpusdir(corpups::WikiText103RawV1) = datadep"WikiText-103-raw-v1"
+corpusdir(corpus::WikiText2v1)      = datadep"WikiText-2-v1"
+corpusdir(corpus::WikiText103v1)    = datadep"WikiText-103-v1"
+corpusdir(corpus::WikiText2RawV1)   = datadep"WikiText-2-raw-v1"
+corpusdir(corpus::WikiText103RawV1) = datadep"WikiText-103-raw-v1"
 
 function register_wikitext()
     DataDeps.register(DataDep(
