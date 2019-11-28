@@ -31,9 +31,9 @@ function test_files end
 
 abstract type AbstractLanguageModelingDataset end
 
-include("billion_word_benchmark.jl")
-include("wikitext.jl")
-include("enwiki8.jl")
+include("datasets/billion_word_benchmark.jl")
+include("datasets/wikitext.jl")
+include("datasets/enwiki8.jl")
 
 function __init__()
     register_billionwordbenchmark()
