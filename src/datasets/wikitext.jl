@@ -75,6 +75,7 @@ corpusdir(corpus::WikiText2RawV1)   = datadep"WikiText-2-raw-v1"
 corpusdir(corpus::WikiText103RawV1) = datadep"WikiText-103-raw-v1"
 
 function register_wikitext()
+    moveup = x -> mv(x, joinpath("..", x))
     DataDeps.register(DataDep(
         "WikiText-2-v1",
         """
@@ -91,7 +92,6 @@ function register_wikitext()
         "92675f1d63015c1c8b51f1656a52d5bdbc33aafa60cc47a218a66e7ee817488c",
         post_fetch_method = function (zip)
             unpack(zip)
-            pth(x) = joinpath("..", x)
             cd("wikitext-2") do
                 moveup("wiki.train.tokens")
                 moveup("wiki.test.tokens")
