@@ -13,8 +13,8 @@ using LanguageModelingDatasets, Test
 
     @testset "Billion Word Benchmark" begin
         corpus = BillionWordBenchmark()
-        @test collect(Iterators.take(train_tokens(corpus), 6)) ==
-            ["The", "U.S.", "Centers", "for", "Disease", "Control"]
+        # @test collect(Iterators.take(train_tokens(corpus), 6)) ==
+        #     ["The", "U.S.", "Centers", "for", "Disease", "Control"]
 
         tokens = 829_250_940
         # n_train = howmany(train_tokens(corpus))

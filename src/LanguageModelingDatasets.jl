@@ -13,7 +13,6 @@ export read_sentences, train_sentences, dev_sentences, test_sentences
 
 abstract type AbstractLanguageModelingDataset end
 
-# 
 abstract type TokenType end
 struct Word <: TokenType end
 struct Character <: TokenType end
