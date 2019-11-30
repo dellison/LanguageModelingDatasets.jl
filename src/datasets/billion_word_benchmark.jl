@@ -1,5 +1,7 @@
 struct BillionWordBenchmark <: AbstractLanguageModelingDataset end
 
+tokentype(::Type{BillionWordBenchmark}) = Word()
+
 bwb_dir(paths...) =
     joinpath(datadep"billionwordbenchmark",
              "1-billion-word-language-modeling-benchmark-r13output",
@@ -16,6 +18,22 @@ function test_files(::BillionWordBenchmark)
     dir = bwb_dir("heldout-monolingual.tokenized.shuffled")
     return filter(isfile, map(x -> joinpath(dir, x), readdir(dir)))
 end
+
+train_tokens(bwb::BillionWordBenchmark) =
+    MultiFileTokenIterator(train_files(bwb), read_word)
+
+dev_tokens(::BillionWordBenchmark) = ()
+
+test_tokens(bwb::BillionWordBenchmark) =
+    MultiFileTokenIterator(test_files(bwb), read_word)
+
+train_sentences(bwb::BillionWordBenchmark; kw...) =
+    MultiFileTokenIterator(train_files(bwb), x -> read_sentence(x, kw...))
+
+dev_sentences(::BillionWordBenchmark) = ()
+
+test_sentences(bwb::BillionWordBenchmark; kw...) =
+    MultiFileTokenIterator(test_files(bwb), x -> read_sentence(x, kw...))
 
 function register_billionwordbenchmark()
     DataDeps.register(DataDep(

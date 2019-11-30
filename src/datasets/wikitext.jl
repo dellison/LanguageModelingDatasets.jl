@@ -44,6 +44,20 @@ train_files(corpus) = [filename(corpus, :train)]
 dev_files(corpus)   = [filename(corpus, :valid)]
 test_files(corpus)  = [filename(corpus, :test)]
 
+train_tokens(w::Union{WikiText2,WikiText103}) =
+    TokenIterator(open(filename(w, :train)), read_word)
+dev_tokens(w::Union{WikiText2,WikiText103}) =
+    TokenIterator(open(filename(w, :valid)), read_word)
+test_tokens(w::Union{WikiText2,WikiText103}) =
+    TokenIterator(open(filename(w, :test)), read_word)
+
+train_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
+    TokenIterator(open(filename(w, :train)), read_char)
+dev_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
+    TokenIterator(open(filename(w, :valid)), read_char)
+test_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
+    TokenIterator(open(filename(w, :test)), read_char)
+
 function filename(corpus::WikiTextCorpus, set)
     @assert set in [:train, :valid, :test]
     filename = "wiki.$set.$(suffix(corpus))"

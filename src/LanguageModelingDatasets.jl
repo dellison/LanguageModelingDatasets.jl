@@ -8,29 +8,18 @@ export HutterPrize, enwiki8
 
 export train_files, dev_files, test_files
 
-"""
-    train_files(corpus)
-
-todo
-"""
-function train_files end
-
-"""
-    dev_files(corpus)
-
-todo
-"""
-function dev_files end
-
-"""
-    test_files(corpus)
-
-todo
-"""
-function test_files end
+export read_tokens, train_tokens, dev_tokens, test_tokens
+export read_sentences, train_sentences, dev_sentences, test_sentences
 
 abstract type AbstractLanguageModelingDataset end
 
+# 
+abstract type TokenType end
+struct Word <: TokenType end
+struct Character <: TokenType end
+
+include("api.jl")
+include("util.jl")
 include("datasets/billion_word_benchmark.jl")
 include("datasets/wikitext.jl")
 include("datasets/enwiki8.jl")
