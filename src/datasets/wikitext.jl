@@ -39,10 +39,12 @@ const WikiText103 = WikiText103v1
 const WikiText2Raw = WikiText2RawV1
 const WikiText103Raw = WikiText103RawV1
 
-# API:
 train_files(corpus) = [filename(corpus, :train)]
 dev_files(corpus)   = [filename(corpus, :valid)]
 test_files(corpus)  = [filename(corpus, :test)]
+
+tokentype(w::Type{Union{WikiText2,WikiText103}}) = Word()
+tokentype(w::Type{Union{WikiText2Raw,WikiText103Raw}}) = Character()
 
 train_tokens(w::Union{WikiText2,WikiText103}) =
     TokenIterator(open(filename(w, :train)), read_word)

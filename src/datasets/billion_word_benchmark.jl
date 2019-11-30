@@ -7,6 +7,15 @@ bwb_dir(paths...) =
              "1-billion-word-language-modeling-benchmark-r13output",
              paths...)
 
+struct BillionWordBenchmarkTokens
+    tokens::MultiFileTokenIterator
+end
+
+Base.IteratorSize(::Type{BillionWordBenchmarkTokens}) = Base.SizeUnknown()
+Base.IteratorEltype(::Type{BillionWordBenchmarkTokens}) = Base.HasEltype()
+Base.eltype(::BillionWordBenchmarkTokens) = String
+Base.iterate(bwb::BillionWordBenchmarkTokens, state...) = iterate(bwb.tokens, state...)
+
 function train_files(::BillionWordBenchmark)
     dir = bwb_dir("training-monolingual.tokenized.shuffled")
     return filter(isfile, map(x -> joinpath(dir, x), readdir(dir)))
@@ -20,20 +29,20 @@ function test_files(::BillionWordBenchmark)
 end
 
 train_tokens(bwb::BillionWordBenchmark) =
-    MultiFileTokenIterator(train_files(bwb), read_word)
+    BillionWordBenchmarkTokens(MultiFileTokenIterator(train_files(bwb), read_word))
 
 dev_tokens(::BillionWordBenchmark) = ()
 
 test_tokens(bwb::BillionWordBenchmark) =
-    MultiFileTokenIterator(test_files(bwb), read_word)
+    BillionWordBenchmarkTokens(MultiFileTokenIterator(test_files(bwb), read_word))
 
 train_sentences(bwb::BillionWordBenchmark; kw...) =
-    MultiFileTokenIterator(train_files(bwb), x -> read_sentence(x, kw...))
+    BillionWordBenchmarkTokens(MultiFileTokenIterator(train_files(bwb), x -> read_sentence(x, kw...)))
 
 dev_sentences(::BillionWordBenchmark) = ()
 
 test_sentences(bwb::BillionWordBenchmark; kw...) =
-    MultiFileTokenIterator(test_files(bwb), x -> read_sentence(x, kw...))
+    BillionWordBenchmarkTokens(MultiFileTokenIterator(test_files(bwb), x -> read_sentence(x, kw...)))
 
 function register_billionwordbenchmark()
     DataDeps.register(DataDep(

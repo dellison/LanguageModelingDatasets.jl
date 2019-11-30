@@ -1,14 +1,14 @@
 function read_word(io)
     b = IOBuffer()
     c = read_char(io)
-    while isspace(c)
+    while isspace(c) && !eof(io)
         c = read_char(io)
     end
-    while !isspace(c)
+    while !isspace(c) && !eof(io)
         write(b, c)
         c = read_char(io)
     end
-    while isspace(Char(Iterators.peek(io)))
+    while !eof(io) && isspace(Char(Iterators.peek(io)))
         c = read_char(io)
     end
     return String(take!(b))
@@ -32,6 +32,11 @@ struct TokenIterator{F}
     io::IO
     tokenize::F
 end
+
+eltype(::TokenIterator{read_sentence}) = Vector{String}
+eltype(::TokenIterator{read_char}) = Char
+eltype(::TokenIterator{read_byte}) = Char
+eltype(::TokenIterator{read_word}) = String
 
 function read_token(iter::TokenIterator)
     if eof(iter.io)
@@ -66,6 +71,7 @@ function Base.iterate(t::MultiFileTokenIterator, state)
         close(t.t.io)
         if t.i < length(t.files)
             t.i += 1
+            @show t.files[t.i]
             t.t = TokenIterator(open(t.files[t.i]), t.t.tokenize)
             return iterate(t.t)
         end
