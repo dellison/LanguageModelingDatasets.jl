@@ -52,6 +52,7 @@ function register_billionwordbenchmark()
         """,
         "http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz",
         "01ba60381110baf7f189dfd2b8374de371e8c9a340835793f190bdae9e90a34e",
+        fetch_method = (r, l) -> DataDeps.fetch_http(r, l; update_period=10),
         post_fetch_method=unpack
     ))
 end

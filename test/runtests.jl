@@ -13,9 +13,11 @@ using LanguageModelingDatasets, Test
 
     @testset "Billion Word Benchmark" begin
         corpus = BillionWordBenchmark()
-        # @test collect(Iterators.take(train_tokens(corpus), 6)) ==
-        #     ["The", "U.S.", "Centers", "for", "Disease", "Control"]
+        @test collect(Iterators.take(train_tokens(corpus), 6)) ==
+            ["The", "U.S.", "Centers", "for", "Disease", "Control"]
 
+        @test first(train_sentences(corpus)) ==
+            split("<S> The U.S. Centers for Disease Control and Prevention initially advised school systems to close if outbreaks occurred , then reversed itself , saying the apparent mildness of the virus meant most schools and day care centers should stay open , even if they had confirmed cases of swine flu . </S>")
         tokens = 829_250_940
         # n_train = howmany(train_tokens(corpus))
         # n_test = howmany(test_tokens(corpus))
