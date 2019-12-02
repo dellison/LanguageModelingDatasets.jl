@@ -23,6 +23,9 @@ include("datasets/billion_word_benchmark.jl")
 include("datasets/wikitext.jl")
 include("datasets/enwiki8.jl")
 
+read_tokens(corpus) =
+    Iterators.flatten((train_tokens(corpus), dev_tokens(corpus), test_tokens(corpus)))
+
 function __init__()
     register_billionwordbenchmark()
     register_wikitext()

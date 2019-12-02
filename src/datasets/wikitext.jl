@@ -46,19 +46,39 @@ test_files(corpus)  = [filename(corpus, :test)]
 tokentype(w::Type{Union{WikiText2,WikiText103}}) = Word()
 tokentype(w::Type{Union{WikiText2Raw,WikiText103Raw}}) = Character()
 
-train_tokens(w::Union{WikiText2,WikiText103}) =
-    TokenIterator(open(filename(w, :train)), read_word)
-dev_tokens(w::Union{WikiText2,WikiText103}) =
-    TokenIterator(open(filename(w, :valid)), read_word)
-test_tokens(w::Union{WikiText2,WikiText103}) =
-    TokenIterator(open(filename(w, :test)), read_word)
+struct WikiTextReader{T}
+    corpus::T
+    set::Symbol
+    tokens::TokenIterator
+end
 
-train_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
-    TokenIterator(open(filename(w, :train)), read_char)
-dev_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
-    TokenIterator(open(filename(w, :valid)), read_char)
-test_tokens(w::Union{WikiText2Raw,WikiText103Raw}) =
-    TokenIterator(open(filename(w, :test)), read_char)
+WikiTextReader(w::Union{WikiText2,WikiText103}, set::Symbol) =
+    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), read_word))
+WikiTextReader(w::Union{WikiText2Raw,WikiText103Raw}, set::Symbol) =
+    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), read_char))
+
+Base.iterate(w::WikiTextReader, state...) = iterate(w.tokens, state...)
+
+Base.IteratorSize(::Type{WikiTextReader{WikiText2}}) = Base.HasLength()
+length(w::WikiTextReader{WikiText2}) =
+    w.set == :train ? 2051910 :
+    w.set == :valid ? 213886  :
+    w.set == :test  ? 241211  :
+    error("unknown set $(w.set)")
+length(w::WikiTextReader{WikiText103}) =
+    w.set == :train ? 101425658 :
+    w.set == :valid ? 213886  :
+    w.set == :test  ? 241211  :
+    error("unknown set $(w.set)")
+
+Base.IteratorSize(::Type{WikiTextReader}) = Base.SizeUnknown()
+Base.IteratorEltype(::Type{WikiTextReader}) = Base.HasEltype()
+Base.eltype(::WikiTextReader{Union{WikiText2,WikiText103}}) = String
+Base.eltype(::WikiTextReader{Union{WikiText2Raw,WikiText103Raw}}) = Char
+
+train_tokens(w::WikiTextCorpus) = WikiTextReader(w, :train)
+dev_tokens(w::WikiTextCorpus) = WikiTextReader(w, :valid)
+test_tokens(w::WikiTextCorpus) = WikiTextReader(w, :test)
 
 function filename(corpus::WikiTextCorpus, set)
     @assert set in [:train, :valid, :test]

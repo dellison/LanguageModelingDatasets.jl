@@ -33,10 +33,10 @@ struct TokenIterator{F}
     tokenize::F
 end
 
-eltype(::TokenIterator{read_sentence}) = Vector{String}
-eltype(::TokenIterator{read_char}) = Char
-eltype(::TokenIterator{read_byte}) = Char
-eltype(::TokenIterator{read_word}) = String
+Base.eltype(::TokenIterator{read_sentence}) = Vector{String}
+Base.eltype(::TokenIterator{read_char}) = Char
+Base.eltype(::TokenIterator{read_byte}) = Char
+Base.eltype(::TokenIterator{read_word}) = String
 
 function read_token(iter::TokenIterator)
     if eof(iter.io)
@@ -71,7 +71,6 @@ function Base.iterate(t::MultiFileTokenIterator, state)
         close(t.t.io)
         if t.i < length(t.files)
             t.i += 1
-            @show t.files[t.i]
             t.t = TokenIterator(open(t.files[t.i]), t.t.tokenize)
             return iterate(t.t)
         end
@@ -79,5 +78,3 @@ function Base.iterate(t::MultiFileTokenIterator, state)
         return next        
     end
 end
-
-
