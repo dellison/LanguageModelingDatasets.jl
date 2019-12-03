@@ -52,20 +52,20 @@ struct WikiTextReader{T}
     tokens::TokenIterator
 end
 
-WikiTextReader(w::Union{WikiText2,WikiText103}, set::Symbol) =
-    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), read_word))
-WikiTextReader(w::Union{WikiText2Raw,WikiText103Raw}, set::Symbol) =
-    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), read_char))
+WikiTextReader(w::Union{WikiText2,WikiText103}, set::Symbol; tok=read_word) =
+    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
+WikiTextReader(w::Union{WikiText2Raw,WikiText103Raw}, set::Symbol; tok=read_char) =
+    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
 
 Base.iterate(w::WikiTextReader, state...) = iterate(w.tokens, state...)
 
 Base.IteratorSize(::Type{WikiTextReader{WikiText2}}) = Base.HasLength()
-length(w::WikiTextReader{WikiText2}) =
+Base.length(w::WikiTextReader{WikiText2}) =
     w.set == :train ? 2051910 :
     w.set == :valid ? 213886  :
     w.set == :test  ? 241211  :
     error("unknown set $(w.set)")
-length(w::WikiTextReader{WikiText103}) =
+Base.length(w::WikiTextReader{WikiText103}) =
     w.set == :train ? 101425658 :
     w.set == :valid ? 213886  :
     w.set == :test  ? 241211  :
@@ -79,6 +79,13 @@ Base.eltype(::WikiTextReader{Union{WikiText2Raw,WikiText103Raw}}) = Char
 train_tokens(w::WikiTextCorpus) = WikiTextReader(w, :train)
 dev_tokens(w::WikiTextCorpus) = WikiTextReader(w, :valid)
 test_tokens(w::WikiTextCorpus) = WikiTextReader(w, :test)
+
+train_sentences(w::WikiTextCorpus; k...) =
+    WikiTextReader(w, :train, tok=x->read_sentence(x; k...))
+dev_sentences(w::WikiTextCorpus; k...) =
+    WikiTextReader(w, :valid, tok=x->read_sentence(x; k...))
+test_sentences(w::WikiTextCorpus; k...) =
+    WikiTextReader(w, :test, tok=x->read_sentence(x; k...))
 
 function filename(corpus::WikiTextCorpus, set)
     @assert set in [:train, :valid, :test]

@@ -18,12 +18,17 @@ read_char(io) = read(io, Char)
 
 function read_sentence(io;
                        tokenize=x -> split(strip(x), r"\s+", keepempty=false),
-                       pad=true, bos="<S>", eos="</S>")
+                       pad=false, pad_left=true, pad_right=true, bos="<S>", eos="</S>")
     line = readline(io)
+    while isempty(strip(line))
+        line = readline(io)
+    end
     tokens = tokenize(line)
     if pad
-        return [bos ; tokens ; eos]
+        return [bos; tokens; eos]
     else
+        pad_left  && (tokens = [bos ; tokens])
+        pad_right && (tokens = [tokens ; eos])
         return tokens
     end
 end
