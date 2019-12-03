@@ -17,13 +17,7 @@ notifications:
 git:
   depth: 99999999
 
-matrix:
-  allow_failures:
-    - julia: nightly
-
-after_success:
-  # push coverage results to Codecov
-  - julia -e 'using Pkg; cd(Pkg.dir("LanguageModelingDatasets")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+codecov: true
 
 jobs:
   include:
@@ -35,3 +29,6 @@ jobs:
                                                Pkg.instantiate()'
         - julia --project=docs/ docs/make.jl
       after_success: skip
+  allow_failures:
+    - julia: nightly
+
