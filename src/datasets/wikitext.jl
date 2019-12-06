@@ -1,107 +1,50 @@
-abstract type WikiTextCorpus <: AbstractLanguageModelingDataset end
+module WikiText
+
+export WikiText2, WikiText103, WikiText2Raw, WikiText103Raw
+
+import ...AbstractLanguageModelingDataset
+import ...CorpusReader, ...read_word, ...read_char
 
 """
-    WikiText2v1
+    WikiText2
 
-WikiText2v1 corpus for word-level language modeling.
+WikiText2 corpus for word-level language modeling.
 See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
 """
-struct WikiText2v1 <: WikiTextCorpus end
+module WikiText2
 
-"""
-    WikiText103v1
+using DataDeps
+import ...AbstractLanguageModelingDataset, ...CorpusReader, ...read_word
 
-WikiText103v1 corpus for word-level language modeling.
-See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
-"""
-struct WikiText103v1 <: WikiTextCorpus end
+struct WikiText2Corpus <: AbstractLanguageModelingDataset end
 
-"""
-    WikiText2RawV1
+dir() = datadep"WikiText-2-v1"
 
-WikiText2RawV1 corpus for character-level language modeling.
-See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
-"""
-struct WikiText2RawV1 <: WikiTextCorpus end
+all_files()   = [train_file(), dev_file(), test_file()]
+train_files() = [joinpath(dir(), "wiki.train.tokens")]
+dev_files()   = [joinpath(dir(), "wiki.valid.tokens")]
+test_files()  = [joinpath(dir(), "wiki.test.tokens")]
 
-"""
-    WikiText103RawV1
+train_file() = joinpath(dir(), "wiki.train.tokens")
+dev_file()   = joinpath(dir(), "wiki.valid.tokens")
+test_file()  = joinpath(dir(), "wiki.test.tokens")
 
-WikiText103RawV1 corpus for character-level language modeling.
-See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
-"""
-struct WikiText103RawV1 <: WikiTextCorpus end
+all_tokens()   = Iterators.flatten((train_tokens(), dev_tokens(), test_tokens()))
+train_tokens() = CorpusReader(WikiText2Corpus(), :train, train_files(), read_word)
+dev_tokens()   = CorpusReader(WikiText2Corpus(), :dev,   dev_files(),   read_word)
+test_tokens()  = CorpusReader(WikiText2Corpus(), :test,  test_files(),  read_word)
 
-# const UNK = "<unk>"
+all_sentences() = Iterators.flatten((train_sentences(), dev_sentences(), test_sentences()))
+train_sentences() = CorpusReader(WikiText2Corpus(), :train, train_files(), read_sentence)
+dev_sentences()   = CorpusReader(WikiText2Corpus(), :dev,   dev_files(),   read_sentence)
+test_sentences()  = CorpusReader(WikiText2Corpus(), :test,  test_files(),  read_sentence)
 
-const WikiText2 = WikiText2v1
-const WikiText103 = WikiText103v1
-const WikiText2Raw = WikiText2RawV1
-const WikiText103Raw = WikiText103RawV1
+# Base.length(::CorpusReader
+    # w.set == :train ? 2051910 :
+    # w.set == :valid ? 213886  :
+    # w.set == :test  ? 241211  :
 
-train_files(corpus) = [filename(corpus, :train)]
-dev_files(corpus)   = [filename(corpus, :valid)]
-test_files(corpus)  = [filename(corpus, :test)]
-
-tokentype(w::Type{Union{WikiText2,WikiText103}}) = Word()
-tokentype(w::Type{Union{WikiText2Raw,WikiText103Raw}}) = Character()
-
-struct WikiTextReader{T}
-    corpus::T
-    set::Symbol
-    tokens::TokenIterator
-end
-
-WikiTextReader(w::Union{WikiText2,WikiText103}, set::Symbol; tok=read_word) =
-    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
-WikiTextReader(w::Union{WikiText2Raw,WikiText103Raw}, set::Symbol; tok=read_char) =
-    WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
-
-Base.iterate(w::WikiTextReader, state...) = iterate(w.tokens, state...)
-
-Base.IteratorSize(::Type{WikiTextReader{WikiText2}}) = Base.HasLength()
-Base.length(w::WikiTextReader{WikiText2}) =
-    w.set == :train ? 2051910 :
-    w.set == :valid ? 213886  :
-    w.set == :test  ? 241211  :
-    error("unknown set $(w.set)")
-Base.length(w::WikiTextReader{WikiText103}) =
-    w.set == :train ? 101425658 :
-    w.set == :valid ? 213886  :
-    w.set == :test  ? 241211  :
-    error("unknown set $(w.set)")
-
-Base.IteratorSize(::Type{WikiTextReader}) = Base.SizeUnknown()
-Base.IteratorEltype(::Type{WikiTextReader}) = Base.HasEltype()
-Base.eltype(::WikiTextReader{Union{WikiText2,WikiText103}}) = String
-Base.eltype(::WikiTextReader{Union{WikiText2Raw,WikiText103Raw}}) = Char
-
-train_tokens(w::WikiTextCorpus) = WikiTextReader(w, :train)
-dev_tokens(w::WikiTextCorpus) = WikiTextReader(w, :valid)
-test_tokens(w::WikiTextCorpus) = WikiTextReader(w, :test)
-
-train_sentences(w::WikiTextCorpus; k...) =
-    WikiTextReader(w, :train, tok=x->read_sentence(x; k...))
-dev_sentences(w::WikiTextCorpus; k...) =
-    WikiTextReader(w, :valid, tok=x->read_sentence(x; k...))
-test_sentences(w::WikiTextCorpus; k...) =
-    WikiTextReader(w, :test, tok=x->read_sentence(x; k...))
-
-function filename(corpus::WikiTextCorpus, set)
-    @assert set in [:train, :valid, :test]
-    filename = "wiki.$set.$(suffix(corpus))"
-    return joinpath(corpusdir(corpus), filename)
-end
-
-suffix(corpus::Union{WikiText2,WikiText103})       = "tokens"
-suffix(corpus::Union{WikiText2Raw,WikiText103Raw}) = "raw"
-
-corpusdir(corpus::WikiText2v1)      = datadep"WikiText-2-v1"
-corpusdir(corpus::WikiText103v1)    = datadep"WikiText-103-v1"
-corpusdir(corpus::WikiText2RawV1)   = datadep"WikiText-2-raw-v1"
-corpusdir(corpus::WikiText103RawV1) = datadep"WikiText-103-raw-v1"
-
-function register_wikitext()
+function __init__()
     moveup = x -> mv(x, joinpath("..", x))
     DataDeps.register(DataDep(
         "WikiText-2-v1",
@@ -127,7 +70,44 @@ function register_wikitext()
             rm("wikitext-2")
         end
     ))
+end
+end # WikiText2 module
 
+"""
+    WikiText103
+
+WikiText103v1 corpus for word-level language modeling.
+See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
+"""
+module WikiText103
+
+using DataDeps
+import ...AbstractLanguageModelingDataset, ...CorpusReader, ...read_word
+
+struct WikiText103Corpus <: AbstractLanguageModelingDataset end
+
+const WT103 = WikiText103Corpus
+
+dir() = datadep"WikiText-103-v1"
+
+train_files() = [joinpath(dir(), "wiki.train.tokens")]
+dev_files()   = [joinpath(dir(), "wiki.valid.tokens")]
+test_files()  = [joinpath(dir(), "wiki.test.tokens")]
+
+train_file() = joinpath(dir(), "wiki.train.tokens")
+dev_file()   = joinpath(dir(), "wiki.valid.tokens")
+test_file()  = joinpath(dir(), "wiki.test.tokens")
+
+train_tokens() = CorpusReader(WikiText103Corpus(), :train, train_files(), read_word)
+dev_tokens()   = CorpusReader(WikiText103Corpus(), :dev,   dev_files(),   read_word)
+test_tokens()  = CorpusReader(WikiText103Corpus(), :test,  test_files(),  read_word)
+
+train_sentences() = CorpusReader(WikiText103Corpus(), :train, train_files(), read_sentence)
+dev_sentences()   = CorpusReader(WikiText103Corpus(), :dev,   dev_files(),   read_sentence)
+test_sentences()  = CorpusReader(WikiText103Corpus(), :test,  test_files(),  read_sentence)
+
+function __init__()
+    moveup = x -> mv(x, joinpath("..", x))
     DataDeps.register(DataDep(
         "WikiText-103-v1",
         """
@@ -149,9 +129,46 @@ function register_wikitext()
                 moveup("wiki.valid.tokens")
                 moveup("wiki.test.tokens")
             end
+            rm("wikitext-103")
         end
     ))
+end
+end # WikiText103 module
 
+
+"""
+    WikiText2RawV1
+
+WikiText2RawV1 corpus for character-level language modeling.
+See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
+"""
+# struct WikiText2RawV1 <: WikiTextCorpus end
+module WikiText2Raw
+
+using DataDeps
+
+struct WikiText2RawCorpus end
+
+dir() = datadep"WikiText-2-raw-v1"
+
+train_files() = [joinpath(dir(), "wiki.train.raw")]
+dev_files()   = [joinpath(dir(), "wiki.valid.raw")]
+test_files()  = [joinpath(dir(), "wiki.test.raw")]
+
+train_file() = joinpath(dir(), "wiki.train.raw")
+dev_file()   = joinpath(dir(), "wiki.valid.raw")
+test_file()  = joinpath(dir(), "wiki.test.raw")
+
+train_tokens() = CorpusReader(WikiText2Corpus(), :train, train_files(), read_word)
+dev_tokens()   = CorpusReader(WikiText2Corpus(), :dev,   dev_files(),   read_word)
+test_tokens()  = CorpusReader(WikiText2Corpus(), :test,  test_files(),  read_word)
+
+train_sentences() = CorpusReader(WikiText2Corpus(), :train, train_files(), read_sentence)
+dev_sentences()   = CorpusReader(WikiText2Corpus(), :dev,   dev_files(),   read_sentence)
+test_sentences()  = CorpusReader(WikiText2Corpus(), :test,  test_files(),  read_sentence)
+
+function __init__()
+    moveup = x -> mv(x, joinpath("..", x))
     DataDeps.register(DataDep(
         "WikiText-2-raw-v1",
         """
@@ -176,7 +193,43 @@ function register_wikitext()
             rm("wikitext-2-raw")
         end
     ))
+end
+end # WikiText2Raw module
 
+"""
+    WikiText103Raw
+
+WikiText103RawV1 corpus for character-level language modeling.
+See https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/.
+"""
+module WikiText103Raw
+
+using DataDeps
+
+struct WikiText103RawCorpus end
+
+dir() = datadep"WikiText-103-raw-v1"
+
+train_files() = [joinpath(dir(), "wiki.train.raw")]
+dev_files()   = [joinpath(dir(), "wiki.valid.raw")]
+test_files()  = [joinpath(dir(), "wiki.test.raw")]
+
+train_sentences(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :train, train_files(), x->read_sentence(x;ks...))
+dev_sentences(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :dev, dev_files(), x->read_sentence(x;ks...))
+test_sentences(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :test, test_files(), x->read_sentence(x;ks...))
+
+train_tokens(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :train, train_files(), read_word)
+dev_tokens(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :dev, dev_files(), read_word)
+test_tokens(;ks...) =
+    CorpusReader(WikiText103RawCorpus(), :test, test_files(), read_word)
+
+function __init__()
+    moveup = x -> mv(x, joinpath("..", x))
     DataDeps.register(DataDep(
         "WikiText-103-raw-v1",
         """
@@ -202,3 +255,69 @@ function register_wikitext()
         end
     ))
 end
+end # module WikiText103Raw
+
+end # module WikiText
+
+# train_files(corpus) = [filename(corpus, :train)]
+# dev_files(corpus)   = [filename(corpus, :valid)]
+# test_files(corpus)  = [filename(corpus, :test)]
+
+# tokentype(w::Type{Union{WikiText2,WikiText103}}) = Word()
+# tokentype(w::Type{Union{WikiText2Raw,WikiText103Raw}}) = Character()
+
+# struct WikiTextReader{T}
+#     corpus::T
+#     set::Symbol
+#     tokens::TokenIterator
+# end
+
+# WikiTextReader(w::Union{WikiText2,WikiText103}, set::Symbol; tok=read_word) =
+#     WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
+# WikiTextReader(w::Union{WikiText2Raw,WikiText103Raw}, set::Symbol; tok=read_char) =
+#     WikiTextReader(w, set, TokenIterator(open(filename(w, set)), tok))
+
+# Base.iterate(w::WikiTextReader, state...) = iterate(w.tokens, state...)
+
+# Base.IteratorSize(::Type{WikiTextReader{WikiText2}}) = Base.HasLength()
+# Base.length(w::WikiTextReader{WikiText2}) =
+#     w.set == :train ? 2051910 :
+#     w.set == :valid ? 213886  :
+#     w.set == :test  ? 241211  :
+#     error("unknown set $(w.set)")
+# Base.length(w::WikiTextReader{WikiText103}) =
+#     w.set == :train ? 101425658 :
+#     w.set == :valid ? 213886  :
+#     w.set == :test  ? 241211  :
+#     error("unknown set $(w.set)")
+
+# Base.IteratorSize(::Type{WikiTextReader}) = Base.SizeUnknown()
+# Base.IteratorEltype(::Type{WikiTextReader}) = Base.HasEltype()
+# Base.eltype(::WikiTextReader{Union{WikiText2,WikiText103}}) = String
+# Base.eltype(::WikiTextReader{Union{WikiText2Raw,WikiText103Raw}}) = Char
+
+# train_tokens(w::WikiTextCorpus) = WikiTextReader(w, :train)
+# dev_tokens(w::WikiTextCorpus) = WikiTextReader(w, :valid)
+# test_tokens(w::WikiTextCorpus) = WikiTextReader(w, :test)
+
+# train_sentences(w::WikiTextCorpus; k...) =
+#     WikiTextReader(w, :train, tok=x->read_sentence(x; k...))
+# dev_sentences(w::WikiTextCorpus; k...) =
+#     WikiTextReader(w, :valid, tok=x->read_sentence(x; k...))
+# test_sentences(w::WikiTextCorpus; k...) =
+#     WikiTextReader(w, :test, tok=x->read_sentence(x; k...))
+
+# function filename(corpus::WikiTextCorpus, set)
+#     @assert set in [:train, :valid, :test]
+#     filename = "wiki.$set.$(suffix(corpus))"
+#     return joinpath(corpusdir(corpus), filename)
+# end
+
+# suffix(corpus::Union{WikiText2,WikiText103})       = "tokens"
+# suffix(corpus::Union{WikiText2Raw,WikiText103Raw}) = "raw"
+
+# corpusdir(corpus::WikiText2v1)      = datadep"WikiText-2-v1"
+# corpusdir(corpus::WikiText103v1)    = datadep"WikiText-103-v1"
+# corpusdir(corpus::WikiText2RawV1)   = datadep"WikiText-2-raw-v1"
+# corpusdir(corpus::WikiText103RawV1) = datadep"WikiText-103-raw-v1"
+

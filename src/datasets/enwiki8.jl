@@ -1,21 +1,21 @@
-struct HutterPrize <: AbstractLanguageModelingDataset end
+module HutterPrize
 
-const enwiki8 = HutterPrize
+using DataDeps
+import ...AbstractLanguageModelingDataset, ...TokenIterator, ...read_byte
+struct HutterPrizeDataset <: AbstractLanguageModelingDataset end
 
-tokentype(::Type{enwiki8}) = Character()
+file() = datadep"enwiki8"
 
-train_files(::HutterPrize) = enwiki8_file()
-dev_files(::HutterPrize)   = enwiki8_file()
-test_files(::HutterPrize)  = enwiki8_file()
+train_tokens() = train_tokens(HutterPrizeDataset())
+dev_tokens() = dev_tokens(HutterPrizeDataset())
+test_tokens() = test_tokens(HutterPrizeDataset())
 
-train_tokens(corpus::HutterPrize) = read_tokens(corpus, train=true, dev=false, test=false)
-dev_tokens(corpus::HutterPrize) = read_tokens(corpus, train=false, dev=true, test=false)
-test_tokens(corpus::HutterPrize) = read_tokens(corpus, train=false, dev=false, test=true)
+train_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=true, dev=false, test=false)
+dev_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=false, dev=true, test=false)
+test_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=false, dev=false, test=true)
 
-enwiki8_file() = joinpath(datadep"enwiki8", "enwik8")
-
-function read_tokens(::HutterPrize; train=true, dev=true, test=true)
-    tokens = TokenIterator(open(enwiki8_file()), read_byte)
+function read_tokens(HutterPrizeDataset; train=true, dev=true, test=true)
+    tokens = TokenIterator(open(file()), read_byte)
     return HutterPrizeTokens(tokens, train, dev, test)
 end
 
@@ -55,7 +55,7 @@ function Base.iterate(corpus::HutterPrizeTokens, state=1)
     end
 end
 
-function register_enwiki8()
+function __init__()
     DataDeps.register(DataDep(
         "enwiki8",
         """
@@ -65,3 +65,5 @@ function register_enwiki8()
         post_fetch_method=unpack
     ))
 end
+
+end # module

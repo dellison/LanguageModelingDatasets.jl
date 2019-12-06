@@ -83,3 +83,15 @@ function Base.iterate(t::MultiFileTokenIterator, state)
         return next        
     end
 end
+
+struct CorpusReader{C <: AbstractLanguageModelingDataset, S}
+    corpus::C
+    reader::MultiFileTokenIterator
+end
+CorpusReader(corpus, set, files, tokenize) =
+    CorpusReader{typeof(corpus),set}(corpus, MultiFileTokenIterator(files, tokenize))
+
+Base.iterate(c::CorpusReader, state...) = iterate(c.reader, state...)
+
+Base.IteratorSize(::Type{CorpusReader}) = Base.SizeUnknown()
+Base.IteratorEltype(::Type{CorpusReader}) = Base.EltypeUnknown()

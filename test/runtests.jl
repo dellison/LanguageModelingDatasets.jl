@@ -12,11 +12,12 @@ using LanguageModelingDatasets, Test
     end
 
     @testset "Billion Word Benchmark" begin
-        corpus = BillionWordBenchmark()
-        @test collect(Iterators.take(train_tokens(corpus), 6)) ==
+        using LanguageModelingDatasets: BillionWordBenchmark
+        train_tokens = BillionWordBenchmark.train_tokens()
+        @test collect(Iterators.take(train_tokens, 6)) ==
             ["The", "U.S.", "Centers", "for", "Disease", "Control"]
 
-        @test first(train_sentences(corpus)) ==
+        @test first(BillionWordBenchmark.train_sentences()) ==
             split("<S> The U.S. Centers for Disease Control and Prevention initially advised school systems to close if outbreaks occurred , then reversed itself , saying the apparent mildness of the virus meant most schools and day care centers should stay open , even if they had confirmed cases of swine flu . </S>")
         tokens = 829_250_940
         # n_train = howmany(train_tokens(corpus))
@@ -28,17 +29,18 @@ using LanguageModelingDatasets, Test
     end
 
     @testset "WikiText" begin
-        for corpus in [WikiText2(), WikiText103(), WikiText2Raw(), WikiText103Raw()]
-            @test isfile(train_files(corpus)[1])
-            @test isfile(dev_files(corpus)[1])
-            @test isfile(test_files(corpus)[1])
+        using LanguageModelingDatasets: WikiText2, WikiText103, WikiText2Raw, WikiText103Raw
+        for WT in [WikiText2, WikiText103, WikiText2Raw, WikiText103Raw]
+            @test isfile(WT.train_files()[1])
+            @test isfile(WT.dev_files()[1])
+            @test isfile(WT.test_files()[1])
         end
     end
 
     @testset "enwiki8" begin
-        corpus = enwiki8()
-        @test length(train_tokens(corpus)) == 90_000_000
-        @test length(dev_tokens(corpus)) == 5_000_000
-        @test length(test_tokens(corpus)) == 5_000_000
+        using LanguageModelingDatasets: HutterPrize
+        @test length(HutterPrize.train_tokens()) == 90_000_000
+        @test length(HutterPrize.dev_tokens()) == 5_000_000
+        @test length(HutterPrize.test_tokens()) == 5_000_000
     end
 end
