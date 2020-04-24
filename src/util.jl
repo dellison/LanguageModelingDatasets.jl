@@ -1,17 +1,17 @@
 function read_word(io)
-    b = IOBuffer()
+    buf = IOBuffer()
     c = read_char(io)
     while isspace(c) && !eof(io)
         c = read_char(io)
     end
     while !isspace(c) && !eof(io)
-        write(b, c)
+        write(buf, c)
         c = read_char(io)
     end
     while !eof(io) && isspace(Char(Iterators.peek(io)))
         c = read_char(io)
     end
-    return String(take!(b))
+    return String(take!(buf))
 end
 read_byte(io) = Char(read(io, 1)[1])
 read_char(io) = read(io, Char)
@@ -37,6 +37,8 @@ struct TokenIterator{F}
     io::IO
     tokenize::F
 end
+
+(iter::TokenIterator)() = iter.tokenize(iter.io)
 
 Base.eltype(::TokenIterator{read_sentence}) = Vector{String}
 Base.eltype(::TokenIterator{read_char}) = Char
@@ -84,14 +86,26 @@ function Base.iterate(t::MultiFileTokenIterator, state)
     end
 end
 
-struct CorpusReader{C <: AbstractLanguageModelingDataset, S}
+struct CorpusReader{C<:AbstractLanguageModelingDataset,S,T<:AbstractTokenType}
     corpus::C
     reader::MultiFileTokenIterator
 end
-CorpusReader(corpus, set, files, tokenize) =
-    CorpusReader{typeof(corpus),set}(corpus, MultiFileTokenIterator(files, tokenize))
+CorpusReader(corpus, set, files, tokenize, T) =
+    CorpusReader{typeof(corpus),set,T}(corpus, MultiFileTokenIterator(files, tokenize))
+
+Base.eltype(::CorpusReader{C,S,Character}) where {C,S} = Char
+Base.eltype(::CorpusReader{C,S,Word}) where {C,S}      = String
+Base.eltype(::CorpusReader{C,S,Sentence}) where {C,S}  = Vector{String}
 
 Base.iterate(c::CorpusReader, state...) = iterate(c.reader, state...)
 
-Base.IteratorSize(::Type{CorpusReader}) = Base.SizeUnknown()
 Base.IteratorEltype(::Type{CorpusReader}) = Base.EltypeUnknown()
+Base.IteratorEltype(::Type{<:CorpusReader{C,S,Character}}) where {C,S} = Base.HasEltype()
+Base.IteratorEltype(::Type{<:CorpusReader{C,S,Word}}) where {C,S}      = Base.HasEltype()
+Base.IteratorEltype(::Type{<:CorpusReader{C,S,Sentence}}) where {C,S}  = Base.HasEltype()
+
+Base.IteratorSize(::Type{CorpusReader}) = Base.SizeUnknown()
+
+# Base.show(io::IO, c::CorpusReader{C,S,T}) where {C,S,T} =
+#     print(io, "Language Modeling Dataset: $C")
+

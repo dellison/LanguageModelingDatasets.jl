@@ -1,25 +1,26 @@
 module LanguageModelingDatasets
 
+export BillionWordBenchmark
+export HutterPrize
+export WikiText2, WikiText103, WikiText2Raw, WikiText103Raw
+export PennTreebank
+
 using DataDeps
 
 abstract type AbstractLanguageModelingDataset end
 
-abstract type TokenType end
-struct Word <: TokenType end
-struct Character <: TokenType end
+abstract type       AbstractTokenType end
+struct Word      <: AbstractTokenType end
+struct Character <: AbstractTokenType end
+struct Sentence  <: AbstractTokenType end # ?
 
-include("api.jl")
 include("util.jl")
 
 include("datasets/billion_word_benchmark.jl")
 include("datasets/wikitext.jl")
 include("datasets/enwiki8.jl")
-using .BillionWordBenchmark, .WikiText , .HutterPrize
+include("datasets/ptb.jl")
 
-# function __init__()
-    # register_billionwordbenchmark()
-    # register_wikitext()
-    # register_enwiki8()
-# end
+using .BillionWordBenchmark, .WikiText , .HutterPrize, .PennTreebank
 
 end # module

@@ -39,10 +39,9 @@ train_sentences() = CorpusReader(WikiText2Corpus(), :train, train_files(), read_
 dev_sentences()   = CorpusReader(WikiText2Corpus(), :dev,   dev_files(),   read_sentence)
 test_sentences()  = CorpusReader(WikiText2Corpus(), :test,  test_files(),  read_sentence)
 
-# Base.length(::CorpusReader
-    # w.set == :train ? 2051910 :
-    # w.set == :valid ? 213886  :
-    # w.set == :test  ? 241211  :
+Base.length(::CorpusReader{WikiText2Corpus,:train}) = 2051910
+Base.length(::CorpusReader{WikiText2Corpus,:dev})   = 213886
+Base.length(::CorpusReader{WikiText2Corpus,:test})  = 241211
 
 function __init__()
     moveup = x -> mv(x, joinpath("..", x))

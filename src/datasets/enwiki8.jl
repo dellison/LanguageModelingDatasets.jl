@@ -1,3 +1,8 @@
+"""
+    HutterPrize
+
+todo
+"""
 module HutterPrize
 
 using DataDeps
@@ -7,12 +12,15 @@ struct HutterPrizeDataset <: AbstractLanguageModelingDataset end
 file() = datadep"enwiki8"
 
 train_tokens() = train_tokens(HutterPrizeDataset())
-dev_tokens() = dev_tokens(HutterPrizeDataset())
-test_tokens() = test_tokens(HutterPrizeDataset())
+dev_tokens()   = dev_tokens(HutterPrizeDataset())
+test_tokens()  = test_tokens(HutterPrizeDataset())
 
-train_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=true, dev=false, test=false)
-dev_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=false, dev=true, test=false)
-test_tokens(corpus::HutterPrizeDataset) = read_tokens(corpus, train=false, dev=false, test=true)
+train_tokens(corpus::HutterPrizeDataset) =
+    read_tokens(corpus, train=true, dev=false, test=false)
+dev_tokens(corpus::HutterPrizeDataset) =
+    read_tokens(corpus, train=false, dev=true, test=false)
+test_tokens(corpus::HutterPrizeDataset) =
+    read_tokens(corpus, train=false, dev=false, test=true)
 
 function read_tokens(HutterPrizeDataset; train=true, dev=true, test=true)
     tokens = TokenIterator(open(file()), read_byte)
@@ -59,6 +67,7 @@ function __init__()
     DataDeps.register(DataDep(
         "enwiki8",
         """
+        todo
         """,
         "http://mattmahoney.net/dc/enwik8.zip",
         "547994d9980ebed1288380d652999f38a14fe291a6247c157c3d33d4932534bc",
